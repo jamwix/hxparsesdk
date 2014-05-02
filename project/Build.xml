@@ -1,0 +1,47 @@
+<xml>
+
+  <set name="GCC_THIN_ARCHIVE" value="1" if="iphone"/>
+
+  <include name="${HXCPP}/build-tool/BuildCommon.xml"/>
+
+  <set name="mobile" value="1" if="iphone"/>
+
+  <set name="tool" value="static" if="iphone"/>
+
+  <set name="IOS_ARCH" value="-v7" if="HXCPP_ARMV7"/>
+
+  <set name="ndll-tool" value="static_link" if="iphone"/>
+  <set name="name_extra" value=".iphoneos${IOS_ARCH}" if="iphoneos"/>
+
+  <set name="no_thirdparty_extras" value="1" if="iphone"/>
+
+  <set name="sdl_static" value="1" unless="mobile"/>
+  <unset name="sdl_static" if="dynamic_sdl"/>
+  <set name="no_thirdparty_extras" value="1" if="dynamic_sdl"/>
+
+  <set name="name_prefix" value="lib" if="iphone" />
+  <files id="common">
+      <compilerflag value="-Iinclude"/>
+      <file name="common/ExternalInterface.cpp"/>
+  </files>
+
+  <files id="iphone">
+      <depend name="${HXCPP}/include/hx/Macros.h"/>
+      <depend name="${HXCPP}/include/hx/CFFI.h"/>
+      <compilerflag value="-I/Library/Frameworks/Parse.framework/Headers/"/>
+      <compilerflag value="-Iinclude"/>
+      <file name="iPhone/HXParse.mm"/>
+  </files>
+
+  <target id="NDLL" output="${name_prefix}HXParse${name_extra}" tool="linker" toolid="${ndll-tool}">
+      <outdir name="../ndll/${BINDIR}" />
+      <ext value=".ndll" unless="mobile"/>
+      <files id="common"/>
+      <files id="iphone" if="iphone"/>
+  </target>
+
+  <target id="default">
+    <target id="NDLL"/>
+  </target>
+
+</xml>
