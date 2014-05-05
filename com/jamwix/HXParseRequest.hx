@@ -4,6 +4,7 @@ import nme.events.Event;
 import nme.events.EventDispatcher;
 import nme.events.ErrorEvent;
 import nme.events.IOErrorEvent;
+import nme.events.HTTPStatusEvent;
 import nme.net.URLLoader;
 import nme.net.URLRequest;
 import nme.net.URLVariables;
@@ -13,18 +14,22 @@ import nme.net.URLRequestHeader;
 import haxe.Json;
 
 import com.jamwix.HXParseConfig;
+import com.jamwix.HXParsePersistance;
 
 class HXParseRequest extends EventDispatcher
 {
 
 	private var _loader:URLLoader;
 	private var _cb:Dynamic->Void;
+	private var _persist:HXParsePersistance;
+	private var _code:Int = -1;
 
 	public function new(url:String, ?method:String = URLRequestMethod.GET, 
 						?data:String = null, ?cb:Dynamic->Void = null) 
 	{ 
 		super();
 
+		_persist = new HXParsePersistance();
 		var request:URLRequest = parseRequest(url, method, data);
 		_loader = new URLLoader();
 		_cb = cb;
@@ -36,12 +41,29 @@ class HXParseRequest extends EventDispatcher
 	private function parseRequest(url:String, method:String, ?data:String = null):URLRequest
 	{
 		var request:URLRequest = new URLRequest(HXParseConfig.BASEURL + url);
-		trace("URL: " + request.url);
+		trace("PARSEURL: " + request.url);
 		request.requestHeaders = 
 		[
 			new URLRequestHeader("X-Parse-Application-Id", HXParseConfig.APPID),
 			new URLRequestHeader("X-Parse-REST-API-Key", HXParseConfig.CLIENTKEY)
 		];
+
+		if (_persist.sessionToken() != null)
+		{
+			request.requestHeaders.push
+			(
+				new URLRequestHeader("X-Parse-Session-Token", 
+									 _persist.sessionToken())
+			);
+		}
+
+		if (_persist.cookies() != null)
+		{
+			request.requestHeaders.push
+			(
+				new URLRequestHeader("Cookie", _persist.cookies().join("; "))
+			);
+		}
 
 		if (method == URLRequestMethod.POST || method == URLRequestMethod.PUT)
 			request.contentType = 'application/json';
@@ -52,7 +74,7 @@ class HXParseRequest extends EventDispatcher
 		if (data != null)
 			request.data = data;
 
-		//request.verbose = true;
+		request.verbose = true;
 		
 		return request;
 	}
@@ -61,18 +83,53 @@ class HXParseRequest extends EventDispatcher
 	{
 		_loader.addEventListener(IOErrorEvent.IO_ERROR, onError);
 		_loader.addEventListener(Event.COMPLETE, onComplete);
+		_loader.addEventListener(HTTPStatusEvent.HTTP_STATUS, onStatus);
 	}
 
 	private function removeListeners():Void
 	{
 		_loader.removeEventListener(IOErrorEvent.IO_ERROR, onError);
 		_loader.removeEventListener(Event.COMPLETE, onComplete);
+		_loader.removeEventListener(HTTPStatusEvent.HTTP_STATUS, onStatus);
+	}
+
+	private function onStatus(?e:HTTPStatusEvent):Void
+	{
+		if (e == null)
+		{
+			trace("HTTPSTATUS was null");
+			return;
+		}
+
+		_code = e.status;
 	}
 
 	private function onComplete(?e:Event):Void
 	{
 		removeListeners();
-		if (_cb != null) _cb({data: _loader.data});
+		var cookieStrs:Array<String> = _loader.getCookies();
+		var cookies:Array<String> = new Array<String>();
+		for (cookieStr in cookieStrs)
+		{
+			var cookie:String = parseCookie(cookieStr);
+			if (cookie != null) cookies.push(cookie);
+		}
+
+		if (cookies != null) 
+		{
+			trace("COOKIES: " + cookies.join(", "));
+			_persist.setCookies(cookies);
+		}
+		if (_cb != null) _cb({data: _loader.data, code: _code});
+	}
+
+	private function parseCookie(cookieLine:String):String
+	{
+		var reg:EReg = ~/\s+/g;
+		var fields:Array<String> = reg.split(cookieLine);
+		if (fields.length < 2) return null;
+		
+		return fields[fields.length - 2] + "=" + fields[fields.length -1];
 	}
 
 	private function onError(?e:IOErrorEvent):Void
