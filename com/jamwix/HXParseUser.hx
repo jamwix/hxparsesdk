@@ -42,9 +42,8 @@ class HXParseUser
 
 		if (res.err != null)
 		{
-			var code:Int = -1;
 			// TODO: prolly want to get a new seesion
-			if (res.code != null && res.code == 101)
+			if (code == 101)
 			{
 				trace("INVALID PARSE SESSION");
 				return false;
