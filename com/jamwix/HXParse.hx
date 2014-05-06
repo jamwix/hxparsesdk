@@ -22,17 +22,4 @@ class HXParse extends EventDispatcher
 		HXParseConfig.APPID = appID;
 		HXParseConfig.CLIENTKEY = clientKey;
 	}
-
-	public function logLaunch()
-	{
-		var request:HXParseRequest = new HXParseRequest(
-			'events/launch', 
-			URLRequestMethod.POST, 
-			'{}',
-			function (res:Dynamic) 
-			{
-				if (res.err != null) trace("PARSE ERR: " + res.err);
-			}
-		);
-	}
 }
