@@ -106,22 +106,11 @@ class HXParseUser
 				}
 			}
 		};
-		var postDataStr:String = null;
-		try 
-		{
-			postDataStr = Json.stringify(postData);
-		}
-		catch (msg:String)
-		{
-			trace("Unable to craft anonymous authData");
-			return;
-		}
 
-		trace("POSTSTR: " + postDataStr);
 		var request:HXParseRequest = new HXParseRequest(
 			'users', 
 			URLRequestMethod.POST, 
-			postDataStr,
+			postData,
 			function(res:Dynamic) 
 			{
 				var success = saveResponse(res);

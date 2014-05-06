@@ -25,12 +25,18 @@ class HXParseRequest extends EventDispatcher
 	private var _code:Int = -1;
 
 	public function new(url:String, ?method:String = URLRequestMethod.GET, 
-						?data:String = null, ?cb:Dynamic->Void = null) 
+						?data:Dynamic = null, ?cb:Dynamic->Void = null) 
 	{ 
 		super();
 
 		_persist = new HXParsePersistance();
 		var request:URLRequest = parseRequest(url, method, data);
+		if (request == null)
+		{
+			trace("Unable to create URLRequest");
+			return;
+		}
+
 		_loader = new URLLoader();
 		_cb = cb;
 
@@ -38,7 +44,7 @@ class HXParseRequest extends EventDispatcher
 		_loader.load(request);
 	}
 	
-	private function parseRequest(url:String, method:String, ?data:String = null):URLRequest
+	private function parseRequest(url:String, method:String, ?data:Dynamic = null):URLRequest
 	{
 		var request:URLRequest = new URLRequest(HXParseConfig.BASEURL + url);
 		trace("PARSEURL: " + request.url);
@@ -70,9 +76,25 @@ class HXParseRequest extends EventDispatcher
 
 		request.method = method;
 
-		// TODO: try catch recommended
 		if (data != null)
-			request.data = data;
+		{
+			if (Std.is(data, Dynamic))
+			{
+				try 
+				{
+					request.data = Json.stringify(data);
+				}
+				catch (msg:String)
+				{
+					trace("Unable to stringify data: " + msg);
+					return null;
+				}
+			}
+			else
+			{
+				request.data = data;
+			}
+		}
 
 		request.verbose = true;
 		
