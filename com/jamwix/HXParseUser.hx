@@ -19,7 +19,7 @@ class HXParseUser
 	public function new() 
 	{ 
 		_persist = new HXParsePersistance();
-		var user:Dynamic = _persist.user;
+		var user:Dynamic = _persist.user();
 		
 		if (user == null) return;
 
