@@ -1,13 +1,13 @@
 package com.jamwix;
 
-import nme.events.Event;
-import nme.events.EventDispatcher;
-import nme.events.ErrorEvent;
-import nme.events.IOErrorEvent;
-import nme.net.URLLoader;
-import nme.net.URLRequest;
-import nme.net.URLRequestMethod;
-import nme.net.URLRequestHeader;
+import openfl.events.Event;
+import openfl.events.EventDispatcher;
+import openfl.events.ErrorEvent;
+import openfl.events.IOErrorEvent;
+import openfl.net.URLLoader;
+import openfl.net.URLRequest;
+import openfl.net.URLRequestMethod;
+import openfl.net.URLRequestHeader;
 
 import haxe.Json;
 

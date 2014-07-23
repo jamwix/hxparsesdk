@@ -2,7 +2,7 @@
 package com.jamwix;
 
 import haxe.Json;
-import nme.net.URLRequestMethod;
+import openfl.net.URLRequestMethod;
 
 import com.jamwix.HXParseRequest;
 

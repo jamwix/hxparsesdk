@@ -1,6 +1,6 @@
 package com.jamwix;
 
-import nme.net.SharedObject;
+import openfl.net.SharedObject;
 
 class HXParsePersistance
 {
